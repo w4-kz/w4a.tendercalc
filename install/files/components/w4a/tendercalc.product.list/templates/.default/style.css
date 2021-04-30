@@ -2,9 +2,7 @@
     padding:10px;
     border-bottom: 3px solid #e8ebed
 }
-input.w4a-readonly{
-    background-color: #eaeae9;
-}
+
 button.w4a-left{
     float:left;
 }
@@ -252,4 +250,37 @@ div.w4a-currency-changed-mess-container {
 }
 .w4a-calc-options-tab .ui-btn-success{
     margin: 5px 10px;
+}
+.ui-ctl-element[readonly], .ui-ctl-element[readonly]:hover,
+.ui-ctl-element[readonly]:active,
+.ui-ctl-element[readonly="readonly"],
+.ui-ctl-element[readonly="readonly"]:hover,
+.ui-ctl-element[readonly="readonly"]:active,
+.ui-ctl-readonly .ui-ctl-element,
+.ui-ctl-readonly .ui-ctl-element:hover,
+.ui-ctl-readonly .ui-ctl-element:focus {
+    border-color: var(--ui-field-color-disabled);
+    background-color: #f4f4f4;
+    color: #a9adb2;
+    resize: none !important;
+    cursor: not-allowed;
+}
+.w4a-users{
+    margin: 5px 0;
+    width: 100%
+}
+.w4a-user{
+    width: 33%
+}
+input[data-type="SPECIAL_IN"]{
+    background-color: #F2DCDB!important;
+}
+input[data-type="SPECIAL_OUT"]{
+    background-color: #F2DCDB!important;
+}
+input[data-type="DISTRIB_IN"]{
+    background-color: #DCE6F1!important;
+}
+input[data-type="DISTRIB_OUT"]{
+    background-color: #DCE6F1!important;
 }
