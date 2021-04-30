@@ -24,6 +24,8 @@ if (!CModule::IncludeModule('crm'))
 }
 use W4a\Tendercalc\Entity\ProductListTable;
 use W4a\Tendercalc\Entity\TenderTable;
+use W4a\Tendercalc\Entity\UsersTable;
+
 global $USER, $APPLICATION;
 if (!CModule::IncludeModule('w4a.tendercalc'))
 {
@@ -44,60 +46,7 @@ if(!function_exists('__W4aActionsEndResponse'))
         die();
     }
 }
-if(!function_exists('__W4aGetProductList')){
-    function __W4aGetProductList($dealId): array
-    {
-        $params = array(
-            'filter' => array(
-                'DEAL_ID' => $dealId,
-            )
-        );
-        $db = ProductListTable::getList($params);
-        $arResult = array();
-        while($arRes = $db->fetch())
-        {
-            $arResult[$arRes['ID']] = $arRes;
-        }
-        return $arResult;
-    }
-}
-if(!function_exists('__W4aGetTender')){
-    function __W4aGetTender($dealId): array
-    {
-        $params = array(
-            'filter' => array(
-                'DEAL_ID' => $dealId,
-            )
-        );
-        $db = TenderTable::getList($params);
-        $arResult = $db->fetch();
-        if(empty($arResult['ID']))
-            return array();
 
-        return $arResult;
-    }
-}
-if(!function_exists('__W4aHtmlSpecialCharsArray')){
-    /**
-     * @param $ar
-     * @return array
-     */
-    function __W4aHtmlSpecialCharsArray($ar): array
-    {
-        $arResult = array();
-        foreach ($ar as $key=>$val)
-        {
-            if(is_array($val) || is_object($val)) {
-                $arResult[$key] = $val;
-                continue;
-            }
-
-            $arResult[$key] = str_replace('"', '&quot;', $val);
-            $arResult[$key] = str_replace("'", '&#039;', $arResult[$key]);
-        }
-        return $arResult;
-    }
-}
 /**
  * ONLY 'POST' SUPPORTED
  * SUPPORTED MODES: ADD
@@ -118,7 +67,7 @@ header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
 $mode = $_POST['MODE'] ?? '';
 if(!isset($mode[0]))
 {
-    __W4aActionsEndResponse(array());
+    __W4aActionsEndResponse(array('ERROR'=>'MODE_NOT_FOUND_0'));
 }
 
 $ownerType = $_POST['OWNER_TYPE'] ?? '';
@@ -130,6 +79,12 @@ $dealId = intval($_POST['DEAL_ID']);
 if (empty($dealId)) {
     __W4aActionsEndResponse(array('ERROR' => 'NO_DEAL_ID'));
 }
+CBitrixComponent::includeComponentClass("w4a:tendercalc.product.list");
+$componentClass = new CW4aTendercalcProductListComponent;
+
+// настройки модуля: w4a:tendercalc
+$arConfig = $componentClass->getConfig();
+
 $arResult = array();
 switch ($mode) {
     case 'ADD':
@@ -139,7 +94,7 @@ switch ($mode) {
         if($db->isSuccess()) {
             $arResult['PRODUCT_ID_NEW'] = $db->getID();
         }else {
-            __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_ADD_PRODUCT_ROW', 'ERROR_DESCRIPTION' => $db->getErrors()));
+            __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_ADD_PRODUCT_LIST_TABLE', 'ERROR_DESCRIPTION' => $db->getErrors()));
         }
         $params = array(
             'filter' => array(
@@ -151,90 +106,188 @@ switch ($mode) {
         {
             $arResult['PRODUCTS'][$arRes['ID']] = $arRes;
         }
+        // UsersTable
+        $params = array(
+            'filter' => array(
+                'DEAL_ID' => $dealId,
+            )
+        );
+        $db =UsersTable::getList($params);
+        $arUsers = $db->fetch();
+        if(empty($arUsers['ID']))
+        {
+            $arFields = array('DEAL_ID' => $dealId, 'ASSIGNED_BY_ID' => $USER->GetID());
+            $db = UsersTable::add($arFields);
+            if($db->isSuccess()) {
+                $arResult['USERS'] = array('ID'=>$db->getID() , 'DEAL_ID' => $dealId);
+            }else {
+                __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_ADD_USERS_TABLE', 'ERROR_DESCRIPTION' => $db->getErrors()));
+            }
+        }
+        else
+        {
+            $arResult['USERS'] = $arUsers;
+        }
         break;
     case 'SAVE':
         $arProducts = $_POST['PRODUCTS'];
         foreach ($arProducts as $key=>$val)
         {
             $arFields = $val;
-            $deliveryDate = CDatabase::FormatDate(
-                            $arFields['DELIVERY_DATE'],
-                            "YYYY-MM-DD HH:MI:SS",
-                            "DD.MM.YYYY HH:MI:SS"
-                        );
-            $arFields['DELIVERY_DATE'] = new \Bitrix\Main\Type\DateTime($deliveryDate);
+            if(!empty($arFields['DELIVERY_DATE']))
+                $arFields['DELIVERY_DATE'] = new \Bitrix\Main\Type\DateTime(
+                    CDatabase::FormatDate(
+                        $arFields['DELIVERY_DATE'],
+                        "YYYY-MM-DD HH:MI:SS",
+                        CSite::GetDateFormat()
+                    )
+                );
+            else
+                $arFields['DELIVERY_DATE'] = new \Bitrix\Main\Type\DateTime(0);
 
-            $db = ProductListTable::update($key, __W4aHtmlSpecialCharsArray($arFields));
+            $db = ProductListTable::update($key, $componentClass->htmlSpecialCharsArray($arFields));
             if ($db->isSuccess()) {
-                $arResult['PRODUCTS'] = __W4aGetProductList($dealId);
+                $arResult['PRODUCTS'] = $componentClass->getProductListByDealId($dealId);
             }else {
-                __W4aActionsEndResponse(array('ERROR' => 'NO_DEAL_ID', 'ERROR_DESCRIPTION' => $db->getErrors()));
+                __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_UPDATE_PRODUCT_LIST_TABLE', 'ERROR_DESCRIPTION' => $db->getErrors()));
             }
+
+            $arResult['arFields'][] = $arFields;
+        }
+        $isCompleted = $componentClass->checkCompletedSendMsg($dealId);
+        if($isCompleted)
+        {
+            $componentClass->setIsCompleted($dealId, true);
+
+            $bpTemplateID = $arConfig['TENDERCALC_COMPLETED_BP_ID'];
+            // BP Start
+            // parameters for BP
+            $arWorkflowParameters = array();
+            $documentId = 'DEAL_' . $dealId;
+            $arErrorsTmp = array();
+            $wfId = CBPDocument::StartWorkflow(
+                $bpTemplateID, // ИД_шаблона_ БП,
+                array("bizproc", "CCrmDocumentDeal", $documentId),
+                array_merge($arWorkflowParameters/*, array("TargetUser" => "user_".$userId)*/),
+                $arErrorsTmp
+            );
+            $arResult['BP_RESULT'] = array(
+                'wfId' => $wfId,
+            );
+        }
+        else{
+            $componentClass->setIsCompleted($dealId, false);
         }
         break;
     case 'ADD_INFO_SAVE':
-        $data = $_POST['DATA'];
-        $arRes = array();
-        $tenderId = 0;
-        foreach ($data as $val){
-            if($val['name'] == 'ID')
-            {
-                $tenderId = $val['value'];
-                continue;
-            }
-            if($val['type'] == 'date')
-            {
-                $date = CDatabase::FormatDate(
-                    $val['value'],
-                    "YYYY-MM-DD HH:MI:SS",
-                    "DD.MM.YYYY HH:MI:SS"
-                );
-                $arRes[$val['name']] = new \Bitrix\Main\Type\DateTime($date);
-                continue;
-            }
-            $arRes[$val['name']] = $val['value'];
+        $arAddInfoFormData = $componentClass->getAddInfoFormData();
+        if(empty($arFields = $arAddInfoFormData['DATA']))
+        {
+            __W4aActionsEndResponse(array('ERROR' => 'NO_ADD_INFO_FORM_DATA'));
         }
-        $arFields = $arRes;
-        unset($val, $date, $arRes);
 
         // calculate action
         $act = 'UPDATE';
+        $tenderId = $arAddInfoFormData['ID'];
         if(empty($tenderId))
         {
             // проверяем, может кто-то уже создал запись
-            $arRes = __W4aGetTender($dealId);
+            $arRes = $componentClass->getTenderByDealId($dealId);
             if(empty($arRes['ID']))
                 $act = 'ADD';
             else
-                $tenderId = $arRes['ID'];
+                $tenderId = intval($arRes['ID']);
         }
 
         // actions
         switch ($act){
             case "ADD":
-                $arFields = array_merge($arFields, array('DEAL_ID' => $dealId, 'ASSIGNED_BY_ID' => $USER->GetID()));
-                $db = TenderTable::add(__W4aHtmlSpecialCharsArray($arFields));
+                $arFields = $componentClass->htmlSpecialCharsArray(
+                    array_merge(
+                        $arFields,
+                        array(
+                            'DEAL_ID' => $dealId,
+                            'ASSIGNED_BY_ID' => $USER->GetID()
+                        )
+                    )
+                );
+
+                $db = TenderTable::add($arFields);
                 if($db->isSuccess()) {
                     $arResult['TENDER_ID_NEW'] = $db->getID();
-                    $arResult['TENDER'] = __W4aGetTender($dealId);
+                    $arResult['TENDER'] = $componentClass->getTenderByDealId($dealId);
                 }else {
-                    __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_ADD_TENDER_ROW', 'ERROR_DESCRIPTION' => $db->getErrors()));
+                    __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_ADD_TENDER_TABLE', 'ERROR_DESCRIPTION' => $db->getErrors()));
                 }
                 break;
             case "UPDATE":
-                $db = TenderTable::update($tenderId, __W4aHtmlSpecialCharsArray($arFields));
+                $db = TenderTable::update($tenderId, $componentClass->htmlSpecialCharsArray($arFields));
                 if ($db->isSuccess()) {
-                    $arResult['TENDER'] = __W4aGetTender($dealId);
+                    $arResult['TENDER'] = $componentClass->getTenderByDealId($dealId);
                 }else {
-                    __W4aActionsEndResponse(array('ERROR' => 'NO_DEAL_ID', 'ERROR_DESCRIPTION' => $db->getErrors()));
+                    __W4aActionsEndResponse(array('ERROR' => 'CAN_NOT_UPDATE_TENDER_TABLE', 'ERROR_DESCRIPTION' => $db->getErrors()));
                 }
                 break;
         }
+        break;
+    case 'SEND':
+        if (!Bitrix\Main\Loader::includeModule('bizproc')) {
+            __W4aActionsEndResponse(array('ERROR'=>'BIZPROC_NO_MODULE'));
+        }
+        $arResult = $arAddInfoFormData = $componentClass->getAddInfoFormData();
+        $bpTemplateID = intval($arConfig['TENDERCALC_BP_ID']);
+        if(!empty($bpTemplateID))
+        {
+            // BP Start
+            // parameters for BP
+            $arWorkflowParameters = array();
+            $documentId = 'DEAL_' . $dealId;
+            $arErrorsTmp = array();
+            $wfId = CBPDocument::StartWorkflow(
+                $bpTemplateID, // ИД_шаблона_ БП,
+                array("bizproc", "CCrmDocumentDeal", $documentId),
+                array_merge($arWorkflowParameters/*, array("TargetUser" => "user_".$userId)*/),
+                $arErrorsTmp
+            );
+            $arResult = array(
+                'wfId' => $wfId,
+            );
+        }
+        else{
+            __W4aActionsEndResponse(array('ERROR'=>'BIZPROC_ID_NOT_FOUND'));
+        }
 
+        break;
+    case 'SEARCH_PRODUCT':
+        if (empty($IBLOCK_ID = $arConfig['CATALOG_IBLOCK_ID']))
+        {
+            __W4aActionsEndResponse(array('ERROR' => 'NO_CATALOG_IBLOCK_ID'));
+        }
+        $word = $_POST['WORD'];
+        $arProducts = array();
+        if(!empty(str_replace(' ', '', $word)))
+        {
+            $arSelect = Array(
+                "ID", "NAME"
+            );
+            $arFilter = Array(
+                "IBLOCK_ID"=>$IBLOCK_ID,
+                "%NAME"=>"$word",
+            );
+
+            $res = CIBlockElement::GetList(Array("NAME"=>"ASC"), $arFilter, false, Array("nPageSize"=>10), $arSelect);
+            $arRes = array();
+            while($ob = $res->GetNextElement())
+            {
+                $arRes[] = $ob->GetFields();
+            }
+            $arProducts = $arRes;
+        }
+        $arResult['PRODUCTS'] = $arProducts;
         break;
 
     default:
-        __W4aActionsEndResponse(array('ERROR'=>'MODE_NOT_FOUND'));
+        __W4aActionsEndResponse(array('ERROR'=>'MODE_NOT_FOUND: ' . $mode));
         break;
 }
 
@@ -244,6 +297,7 @@ $arResult = array(
     'RESULT' => $arResult,
     'POST' => $_POST,
     'ERROR' => false,
+    '$arConfig' => $arConfig,
 );
 
 

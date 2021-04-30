@@ -2,6 +2,7 @@
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $DEBUGGER = true;
 $entityId = 0;
+$arUsers = array();
 if($_REQUEST['PLACEMENT_OPTIONS']):
 
     $PLACEMENT_OPTIONS = json_decode($_REQUEST['PLACEMENT_OPTIONS']);
@@ -31,7 +32,36 @@ else:
     if(!$DEBUGGER) {
         exit('Access is denied. Should be required from application!!!');
     }
-    $entityId = 18367; // TEST DEAL
+    $entityId = $_GET['dealId']; // DEAL via GET params
+
+    if(empty($entityId)) {
+        exit('Access is denied. You are should to add get parameter: dealId!!!');
+    }
+    //ACHTUNG!!! необходимо добавлять sessid, иначе приложение не будет проходить проверку на сессию.
+    $_REQUEST['sessid_app'] = bitrix_sessid();
+    $isProductionUser = $isSalesUser = $isLogisticsUser = false;
+    switch ($_REQUEST['dept'])
+    {
+        case 'production':
+            $isProductionUser = true;
+            break;
+        case 'sales':
+            $isSalesUser = true;
+            break;
+        case 'logistics':
+            $isLogisticsUser = true;
+            break;
+
+        default:
+
+            break;
+    }
+    $arUsers = array(
+        'IS_PRODUCTION_USER' => $isProductionUser,
+        'IS_SALES_USER' => $isSalesUser,
+        'IS_LOGISTICS_USER' => $isLogisticsUser,
+    );
+
 endif;
 ?>
 
@@ -42,6 +72,7 @@ endif;
             Array(
                 "ENTITY_ID" => $entityId,
                 "DATA" => $_REQUEST,
+                "USERS" => $arUsers,
                 'CACHE_TIME'=>0, // 0-без кеша
             ),
             false
