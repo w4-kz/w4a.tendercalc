@@ -1,0 +1,26 @@
+<?php
+defined('B_PROLOG_INCLUDED') || die;
+
+$MESS['CRMTENDERS_NO_MODULE'] = 'Модуль "Тендер: Калькулятор" не установлен.';
+$MESS['CRMTENDERS_HEADER_ID'] = 'ID';
+$MESS['CRMTENDERS_HEADER_PRODUCT_NAME_ORIG'] = 'Наименование (номенклатура)';
+$MESS['CRMTENDERS_HEADER_PRODUCT_NAME_SPEC'] = 'Наименование (спецификация)';
+$MESS['CRMTENDERS_HEADER_ASSIGNED_BY'] = 'Ответственный';
+$MESS['CRMTENDERS_HEADER_DELIVERY_DATE'] = 'Срок поставки';
+$MESS['CRMTENDERS_HEADER_DELIVERY_ADDRESS'] = 'Базис поставки';
+$MESS['CRMTENDERS_FILTER_FIELD_ID'] = 'ID';
+$MESS['CRMTENDERS_FILTER_FIELD_PRODUCT_NAME_ORIG'] = 'Наименование (номенклатура)';
+$MESS['CRMTENDERS_FILTER_FIELD_ASSIGNED_BY'] = 'Ответственный';
+$MESS['CRMTENDERS_FILTER_FIELD_DELIVERY_ADDRESS'] = 'Базис поставки';
+$MESS['CRMTENDERS_FILTER_PRESET_MY_TENDERS'] = 'Мои тендеры';
+$MESS['CRMTENDERS_GRID_ROW_COUNT'] = 'Всего: #COUNT#';
+
+
+$MESS['CRMTENDERS_HEADER_MEASURE'] = 'Ед. измерений (кг./литр)';
+$MESS['CRMTENDERS_HEADER_QUANTITY_REQUEST'] = 'Запрашиваемы объем/кол.';
+$MESS['CRMTENDERS_HEADER_PACKING'] = 'Фасовка';
+$MESS['CRMTENDERS_HEADER_QUANTITY'] = 'Количество';
+
+$MESS['CRMTENDERS_HEADER_PRICE_PURCHASE'] = 'Цена закупа';
+$MESS['CRMTENDERS_HEADER_PROFIT_RATIO'] = 'Наценка';
+$MESS['CRMTENDERS_HEADER_PRICE_NMCK'] = 'НМЦК';
