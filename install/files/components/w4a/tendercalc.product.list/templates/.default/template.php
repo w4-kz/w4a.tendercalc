@@ -773,25 +773,3 @@ $orderEditorCfg = array(
             }
         );
     </script>
-<?php
-/** DEBUGGERS */
-if(__w4a::isDev()):
-    __w4a(array(
-            'VAR_NAME'=>'$arParams', // Variable name
-            'CALLED_FROM'=>__FILE__, // Trace of file path
-            'VAR'=>$arParams // Variable for debugger
-        )
-    );
-    __w4a(array(
-            'VAR_NAME'=>'$arResult', // Variable name
-            'CALLED_FROM'=>__FILE__, // Trace of file path
-            'VAR'=>$arResult // Variable for debugger
-        )
-    );
-
-endif;
-
-//\Bitrix\Main\Diag\Debug::writeToFile('' . date('d.m.Y H:i:s'), '====='.__FILE__.'======', "__w4a.log");
-//\Bitrix\Main\Diag\Debug::writeToFile(print_r(ConvertDateTime($arResult['TENDER']['DEADLINE']->toString(), "YYYY-MM-DD", "ru"), true), 'DEADLINE: ' . date('d.m.Y H:i:s'), "__w4a.log");
-
-/** DEBUGGERS */
