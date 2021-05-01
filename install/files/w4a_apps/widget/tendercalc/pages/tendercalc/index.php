@@ -79,6 +79,12 @@ endif;
         );?>
     </div>
 <?
+//__w4a(array(
+//        'VAR_NAME'=>'$_REQUEST', // Variable name
+//        'CALLED_FROM'=>__FILE__, // Trace of file path
+//        'VAR'=>$_REQUEST // Variable for debugger
+//    )
+//);
 if($_REQUEST['PLACEMENT_OPTIONS']):
 ?>
     </body>

@@ -12,5 +12,5 @@ $data .= '&' . bitrix_sessid_get();
 //&sessid_app=7093b24b5d8ee51e58884e15ef21170b
 $data .= '&sessid_app=' . bitrix_sessid();
 
-header('Location: https://portal.norsken-oil.ru/w4a_apps/widget/tendercalc/pages/tendercalc/?IFRAME=Y&' . $data);
+header('Location: https://'.$_REQUEST['DOMAIN'].'/w4a_apps/widget/tendercalc/pages/tendercalc/?IFRAME=Y&' . $data);
 die();

@@ -2,7 +2,7 @@
 require_once ('crest.php');
 
 $result = CRest::installApp();
-print_r($result);
+//print_r($result);
 if($result['rest_only'] === false):?>
 <head>
 	<script src="//api.bitrix24.com/api/v1/"></script>
