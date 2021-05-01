@@ -66,3 +66,10 @@ CREATE TABLE IF NOT EXISTS  `w4a_tendercalc_users` (
        `ASSIGNED_BY_ID` int(11) NOT NULL,
        PRIMARY KEY (`ID`)
 );
+
+INSERT INTO `w4a_tendercalc_config` (`ID`, `NAME`, `VALUE`, `SORT`, `DESCRIPTION`) VALUES
+(1,	'TENDERCALC_BP_ID',	'0',	10,	'ID БП: Тендер: Калькулятор'),
+(2,	'CATALOG_IBLOCK_ID',	'27',	20,	'IBLOCK_ID Товаров'),
+(3,	'TENDERCALC_PROFIT_RATIO_DEFAULT',	'1.2',	30,	'Наценка расчетная (по умолчанию)'),
+(4,	'TENDERCALC_NDS',	'12',	40,	'ставка НДС (%)'),
+(5,	'TENDERCALC_COMPLETED_BP_ID',	'0',	15,	'ID БП: Тендеры: Заполнены');

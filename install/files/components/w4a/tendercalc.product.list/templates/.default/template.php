@@ -303,7 +303,7 @@ foreach ($arResult['TENDER_PRODUCTS'] as $product) {
                     '#NAME#'=>'PRICE_IN_DISTRIBUTOR',
                     '#ID#'=>$product['ID'],
                     '#TYPE#' => 'DISTRIB_IN',
-                ),
+                )
             ),
             'PRICE_IN_DISTRIBUTOR_SUM' => Loc::getMessage(
                 'CRMTENDERS_GRID_ELEMENT_INPUT_READONLY',
@@ -409,7 +409,7 @@ foreach ($arResult['TENDER_PRODUCTS'] as $product) {
                     '#NAME#'=>'PRICE_OUT_DISTRIBUTOR',
                     '#ID#'=>$product['ID'],
                     '#TYPE#' => 'DISTRIB_OUT',
-                ),
+                )
             ),
             'PRICE_OUT_DISTRIBUTOR_SUM' => Loc::getMessage(
                 'CRMTENDERS_GRID_ELEMENT_INPUT_READONLY',
@@ -456,7 +456,7 @@ foreach ($arResult['TENDER_PRODUCTS'] as $product) {
                     '#NAME#'=>'PRICE_OUT_SPECIAL',
                     '#ID#'=>$product['ID'],
                     '#TYPE#' => 'SPECIAL_OUT',
-                ),
+                )
             ),
             'PRICE_OUT_SPECIAL_SUM' => Loc::getMessage(
                 'CRMTENDERS_GRID_ELEMENT_INPUT_READONLY',
