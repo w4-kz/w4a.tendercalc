@@ -160,20 +160,28 @@ switch ($mode) {
             $componentClass->setIsCompleted($dealId, true);
 
             $bpTemplateID = $arConfig['TENDERCALC_COMPLETED_BP_ID'];
-            // BP Start
-            // parameters for BP
-            $arWorkflowParameters = array();
-            $documentId = 'DEAL_' . $dealId;
-            $arErrorsTmp = array();
-            $wfId = CBPDocument::StartWorkflow(
-                $bpTemplateID, // ИД_шаблона_ БП,
-                array("bizproc", "CCrmDocumentDeal", $documentId),
-                array_merge($arWorkflowParameters/*, array("TargetUser" => "user_".$userId)*/),
-                $arErrorsTmp
-            );
-            $arResult['BP_RESULT'] = array(
-                'wfId' => $wfId,
-            );
+            if(!empty($bpTemplateID))
+            {
+                // BP Start
+                // parameters for BP
+                $arWorkflowParameters = array();
+                $documentId = 'DEAL_' . $dealId;
+                $arErrorsTmp = array();
+                $wfId = CBPDocument::StartWorkflow(
+                    $bpTemplateID, // ИД_шаблона_ БП,
+                    array("bizproc", "CCrmDocumentDeal", $documentId),
+                    array_merge($arWorkflowParameters/*, array("TargetUser" => "user_".$userId)*/),
+                    $arErrorsTmp
+                );
+
+                $arResult['BP_RESULT'] = array(
+                    'wfId' => $wfId,
+                );
+            }
+            else{
+                __W4aActionsEndResponse(array('ERROR'=>'BIZPROC_ID_NOT_FOUND'));
+            }
+
         }
         else{
             $componentClass->setIsCompleted($dealId, false);
