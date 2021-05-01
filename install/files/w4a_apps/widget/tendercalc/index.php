@@ -9,8 +9,6 @@ require_once ('./info/description.html');
 require_once ('./info/dev_info.html');
 require_once ('crest.php');
 
-echo "w4a-request: <pre>"; print_r($_REQUEST); echo "</pre>";
-exit();
 $placementOptions = array();
 if(array_key_exists('PLACEMENT_OPTIONS', $_REQUEST))
 {
