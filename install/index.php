@@ -4,6 +4,7 @@ IncludeModuleLangFile(__FILE__);
 
 use \Bitrix\Main\ModuleManager;
 use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Main\Application;
 
 Class w4a_tendercalc extends CModule
 {
